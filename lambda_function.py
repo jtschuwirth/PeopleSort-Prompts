@@ -1,9 +1,11 @@
 from fastapi import FastAPI, HTTPException, status, Response
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
+from pydantic import BaseModel
 import random
 
 from functions.getPhrasesDDB import getPhrasesDDB
+from functions.addOpinionDDB import addOpinionDDB
 
 app = FastAPI()
 
@@ -42,6 +44,25 @@ def getPhrases(
 
     response.status_code=status.HTTP_200_OK
     return phrases
+
+class Opinion(BaseModel):
+    level:int
+    phrase:str
+    opinion:int
+
+@app.post("/icebreakers/opinion")
+def addOpinion(
+    data: Opinion,
+    response: Response
+    ):
+    try:
+        addOpinionDDB(data.level, data.phrase, data.opinion)
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    response.status_code=status.HTTP_200_OK
+    return "Success"
 
 #uvicorn lambda_function:app --reload --port 8081
 lambda_handler = Mangum(app, lifespan="off")
