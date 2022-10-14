@@ -24,7 +24,7 @@ def addOpinionDDB(level, phrase, opinion):
     else:
         table.update_item(
             Key={ "Lvl":level,"Phrase":phrase  },
-            UpdateExpression = "Dislike_ add :dislike",
+            UpdateExpression = "ADD Dislike_ :dislike",
             ExpressionAttributeValues={
                 ':dislike': 1
             }
