@@ -36,7 +36,7 @@ def getPhrases(
         if len(all_phrases)==0:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="error retriving phrases")
         elif n > len(all_phrases) :
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="can't ask for more than the existing amount of phrases")
+            n=len(all_phrases)
         phrases = random.sample(all_phrases, k=n)
     except Exception as e:
         print(e)
