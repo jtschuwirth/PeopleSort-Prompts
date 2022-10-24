@@ -3,9 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 from pydantic import BaseModel
 import random
+import boto3
+import os
+from dotenv import load_dotenv
 
 from functions.getPhrasesDDB import getPhrasesDDB
 from functions.addOpinionDDB import addOpinionDDB
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -23,6 +28,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+my_session = boto3.session.Session(
+    aws_access_key_id=os.environ.get("ACCESS_KEY"),
+    aws_secret_access_key=os.environ.get("SECRET_KEY"),
+    region_name = "us-east-1",
+)
+
+table_name = os.environ['TABLE_NAME']
+table = my_session.resource('dynamodb').Table(table_name)
+
 @app.get("/icebreakers/phrases")
 def getPhrases(
     response: Response,
@@ -32,7 +46,7 @@ def getPhrases(
     try:
         if level not in [1,2,3]:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="level can only be 1, 2 or 3")
-        all_phrases = getPhrasesDDB(level)
+        all_phrases = getPhrasesDDB(table, level)
         if len(all_phrases)==0:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="error retriving phrases")
         elif n > len(all_phrases) :
@@ -56,7 +70,7 @@ def addOpinion(
     response: Response
     ):
     try:
-        addOpinionDDB(data.level, data.phrase, data.opinion)
+        addOpinionDDB(table, data.level, data.phrase, data.opinion)
     except Exception as e:
         print(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)

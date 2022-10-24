@@ -1,18 +1,4 @@
-import boto3
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
-my_session = boto3.session.Session(
-    aws_access_key_id=os.environ.get("ACCESS_KEY"),
-    aws_secret_access_key=os.environ.get("SECRET_KEY"),
-    region_name = "us-east-1",
-)
-
-table = my_session.resource('dynamodb').Table("IceBreakers-Phrases")
-
-def addOpinionDDB(level, phrase, opinion):
+def addOpinionDDB(table, level, phrase, opinion):
     if opinion:
         table.update_item(
             Key={ "Lvl":level,"Phrase":phrase },

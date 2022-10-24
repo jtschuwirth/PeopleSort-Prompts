@@ -1,4 +1,5 @@
 .env
 python
 python.zip
-icebreakers.zip
+lambdazip.zip
+__pycache__
