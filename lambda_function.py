@@ -3,13 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 from pydantic import BaseModel
 import random
-import boto3
-import os
-from dotenv import load_dotenv
 
 from functions.getPhrasesDDB import getPhrasesDDB
 from functions.addOpinionDDB import addOpinionDDB
+from functions.initTable import initTable
 
+import os
+from dotenv import load_dotenv
 load_dotenv()
 
 app = FastAPI()
@@ -28,22 +28,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-my_session = boto3.session.Session(
-    aws_access_key_id=os.environ.get("ACCESS_KEY"),
-    aws_secret_access_key=os.environ.get("SECRET_KEY"),
-    region_name = "us-east-1",
-)
+game=os.environ.get("GAME")
 
-table_name = os.environ['TABLE_NAME']
-table = my_session.resource('dynamodb').Table(table_name)
-
-@app.get("/icebreakers/phrases")
+@app.get(f"/{game}/phrases")
 def getPhrases(
     response: Response,
     n: int=1,
     level:int=1
     ):
     try:
+        table = initTable()
         if level not in [1,2,3]:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="level can only be 1, 2 or 3")
         all_phrases = getPhrasesDDB(table, level)
@@ -64,12 +58,13 @@ class Opinion(BaseModel):
     phrase:str
     opinion:int
 
-@app.post("/icebreakers/opinion")
+@app.post(f"/{game}/opinion")
 def addOpinion(
     data: Opinion,
     response: Response
     ):
     try:
+        table = initTable()
         addOpinionDDB(table, data.level, data.phrase, data.opinion)
     except Exception as e:
         print(e)
