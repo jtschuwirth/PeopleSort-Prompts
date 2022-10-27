@@ -1,7 +1,5 @@
 import boto3
 import os
-from dotenv import load_dotenv
-load_dotenv()
 
 def initTable():
     my_session = boto3.session.Session(

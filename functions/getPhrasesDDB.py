@@ -1,17 +1,12 @@
-def getPhrasesDDB(table, level):
+def getPhrasesDDB(table):
     phrases=[]
-    response = table.query(
-        KeyConditionExpression = "Lvl = :lvl",
-        ExpressionAttributeValues={
-            ":lvl": level
-        }
-    )
+    response = table.scan()
     if "Items" not in response:
         return {}
     for entry in response["Items"]:
         phrases.append({
-            "phrase": entry["Phrase"],
-            "lvl": entry["Lvl"]
+            "max": entry["max"],
+            "min": entry["min"]
         })
 
     return phrases
